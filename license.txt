@@ -1,5 +1,5 @@
-gmsv_xconsole
-A Garry's Mod module that provides an interface for external consoles.
+xconsole
+An implementation of an external console for gmsv_xconsole.
 -----------------------------------------------------------------------
 Copyright (c) 2015, Daniel Almeida
 All rights reserved.
