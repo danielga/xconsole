@@ -125,13 +125,23 @@ namespace xconsole
                             new MemoryStream(buffer, 0, read)
                         ))
                         {
+                            int type = reader.ReadInt32();
+                            int level = reader.ReadInt32();
+                            string group = ReadString(reader);
+                            Color color = Color.FromArgb(
+                                reader.ReadByte(),
+                                reader.ReadByte(),
+                                reader.ReadByte()
+                            );
+                            reader.ReadByte(); // alpha doesn't work on the RichTextBox
+                            string msg = ReadString(reader);
                             Invoke(
                                 new AppendMessageDelegate(this.AppendMessage),
-                                reader.ReadInt32(),
-                                reader.ReadInt32(),
-                                ReadString(reader),
-                                Color.FromArgb(reader.ReadInt32()),
-                                ReadString(reader)
+                                type,
+                                level,
+                                group,
+                                color,
+                                msg
                             );
                         }
                     }
