@@ -136,7 +136,7 @@ namespace xconsole
                             reader.ReadByte(); // alpha doesn't work on the RichTextBox
                             string msg = ReadString(reader);
                             Invoke(
-                                new AppendMessageDelegate(this.AppendMessage),
+                                new AppendMessageDelegate(AppendMessage),
                                 type,
                                 level,
                                 group,
@@ -155,7 +155,7 @@ namespace xconsole
 
         private void MainWindow_Shown(Object sender, EventArgs e)
         {
-            thread = new Thread(this.ClientThread);
+            thread = new Thread(ClientThread);
             thread.Start();
         }
 
