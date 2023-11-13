@@ -14,7 +14,7 @@ namespace xconsole
     public partial class MainWindow : Form
     {
         private const int BUFFER_SIZE = 8192;
-        private byte[] buffer = new byte[BUFFER_SIZE];
+        private readonly byte[] buffer = new byte[BUFFER_SIZE];
         private Thread thread = null;
         private bool newline = true;
         private readonly string[] SpewTypeString = {
@@ -27,7 +27,7 @@ namespace xconsole
 
         public static void Main()
         {
-            MainWindow window = new MainWindow();
+            MainWindow window = new();
             window.ShowDialog();
         }
 
@@ -49,8 +49,8 @@ namespace xconsole
 
         private static string ReadString(BinaryReader reader)
         {
-            List<byte> list = new List<byte>();
-            byte ch = 0;
+            List<byte> list = new();
+            byte ch;
             while ((ch = reader.ReadByte()) != 0)
                 list.Add(ch);
 
@@ -98,52 +98,49 @@ namespace xconsole
         {
             try
             {
-                NamedPipeClientStream pipe = new NamedPipeClientStream(
+                using NamedPipeClientStream pipe = new(
                     ".",
                     "garrysmod_console",
-                    PipeAccessRights.Read | PipeAccessRights.WriteAttributes,
+                    PipeDirection.In,
                     PipeOptions.Asynchronous,
                     TokenImpersonationLevel.Anonymous,
                     HandleInheritability.None
                 );
-
                 while (true)
                 {
                     pipe.Connect();
 
                     Invoke(new SetConnectionStatusDelegate(SetConnectionStatus), true);
 
-                    pipe.ReadMode = PipeTransmissionMode.Message;
-
                     while (pipe.IsConnected)
                     {
+                        pipe.ReadMode = PipeTransmissionMode.Message;
+
                         int read = pipe.Read(buffer, 0, BUFFER_SIZE);
                         if (read == 0)
                             continue;
 
-                        using (BinaryReader reader = new BinaryReader(
+                        using BinaryReader reader = new(
                             new MemoryStream(buffer, 0, read)
-                        ))
-                        {
-                            int type = reader.ReadInt32();
-                            int level = reader.ReadInt32();
-                            string group = ReadString(reader);
-                            Color color = Color.FromArgb(
-                                reader.ReadByte(),
-                                reader.ReadByte(),
-                                reader.ReadByte()
-                            );
-                            reader.ReadByte(); // alpha doesn't work on the RichTextBox
-                            string msg = ReadString(reader);
-                            Invoke(
-                                new AppendMessageDelegate(AppendMessage),
-                                type,
-                                level,
-                                group,
-                                color,
-                                msg
-                            );
-                        }
+                        );
+                        int type = reader.ReadInt32();
+                        int level = reader.ReadInt32();
+                        string group = ReadString(reader);
+                        Color color = Color.FromArgb(
+                            reader.ReadByte(),
+                            reader.ReadByte(),
+                            reader.ReadByte()
+                        );
+                        reader.ReadByte(); // alpha doesn't work on the RichTextBox
+                        string msg = ReadString(reader);
+                        Invoke(
+                            new AppendMessageDelegate(AppendMessage),
+                            type,
+                            level,
+                            group,
+                            color,
+                            msg
+                        );
                     }
 
                     Invoke(new SetConnectionStatusDelegate(SetConnectionStatus), false);
@@ -155,7 +152,8 @@ namespace xconsole
 
         private void MainWindow_Shown(Object sender, EventArgs e)
         {
-            thread = new Thread(ClientThread);
+            thread = new(ClientThread);
+            thread.Name = "Console messages receiver";
             thread.Start();
         }
 

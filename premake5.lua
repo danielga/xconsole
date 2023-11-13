@@ -2,6 +2,8 @@ solution("xconsole")
 	language("C#")
 	location("")
 	warnings("Extra")
+	dotnetframework("net6.0")
+	defines("TRACE")
 
 	configurations({"Debug", "Release"})
 
@@ -18,6 +20,4 @@ solution("xconsole")
 
 	project("xconsole")
 		kind("WindowedApp")
-		defines("TRACE")
 		files("source/**.cs")
-		links({"System", "System.Drawing", "System.Windows.Forms"})
